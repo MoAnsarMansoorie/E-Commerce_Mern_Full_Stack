@@ -35,31 +35,51 @@ const slides = [
 const Hero = () => {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   const timerRef = useRef(null);
   const slideCount = slides.length;
   const delay = 3000; // 3 seconds
+  const displaySlides = [...slides, slides[0]];
 
   useEffect(() => {
     if (isPaused) return;
 
     timerRef.current = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slideCount);
+      setIsTransitioning(true);
+      setCurrent((prev) => prev + 1);
     }, delay);
 
     return () => clearInterval(timerRef.current);
   }, [isPaused, slideCount]);
 
   const goTo = (index) => {
+    setIsTransitioning(true);
     setCurrent(index % slideCount);
   };
 
   const prev = () => {
+    setIsTransitioning(true);
     setCurrent((prevIndex) => (prevIndex - 1 + slideCount) % slideCount);
   };
 
   const next = () => {
-    setCurrent((prevIndex) => (prevIndex + 1) % slideCount);
+    setIsTransitioning(true);
+    setCurrent((prevIndex) => prevIndex + 1);
   };
+
+  const handleTransitionEnd = () => {
+    if (current === slideCount) {
+      setIsTransitioning(false);
+      setCurrent(0);
+    }
+  };
+
+  useEffect(() => {
+    if (!isTransitioning) {
+      const id = requestAnimationFrame(() => setIsTransitioning(true));
+      return () => cancelAnimationFrame(id);
+    }
+  }, [isTransitioning]);
 
   return (
     <section
@@ -70,15 +90,19 @@ const Hero = () => {
     >
       {/* Slides container */}
       <div
-        className="flex w-full transition-transform duration-700 ease-in-out"
+        className={`flex w-full ${
+          isTransitioning ? 'transition-transform duration-1000 ease-[cubic-bezier(0.45,0,0.2,1)]' : ''
+        }`}
         style={{ transform: `translateX(-${current * 100}%)` }}
+        onTransitionEnd={handleTransitionEnd}
       >
-        {slides.map((s) => (
-          <div key={s.id} className="min-w-full relative bg-[#f8f7f4]">
+        {displaySlides.map((s, index) => (
+          <div key={`${s.id}-${index}`} className="min-w-full relative bg-[#f8f7f4] overflow-hidden">
             <img
               src={s.img}
               alt={s.title}
-              className="w-full h-[300px] sm:h-[480px] object-fill text-white"
+              className="w-full h-[300px] sm:h-[480px] object-cover text-white transition-transform duration-[3000ms] ease-out"
+              style={{ transform: index === current ? 'scale(1.04)' : 'scale(1)' }}
             />
 
             {/* Overlay text (centered inside page max-width) */}
@@ -127,7 +151,7 @@ const Hero = () => {
             key={idx}
             onClick={() => goTo(idx)}
             className={`h-2 w-8 rounded-full transition-all ${
-              idx === current ? 'bg-[#414141] w-8' : 'bg-white/70'
+              idx === current % slideCount ? 'bg-[#414141] w-8' : 'bg-white/70'
             }`}
             aria-label={`Go to slide ${idx + 1}`}
           />
