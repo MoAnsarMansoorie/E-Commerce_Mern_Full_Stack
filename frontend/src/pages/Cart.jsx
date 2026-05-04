@@ -1,108 +1,127 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { ShopContext } from '../context/ShopContext';
-import Title from '../components/Title';
-import { assets } from '../assets/assets';
-import CartTotal from '../components/CartTotal';
+import React, { useContext, useMemo } from 'react'
+import { ShopContext } from '../context/ShopContext'
+import Title from '../components/Title'
+import { assets } from '../assets/assets'
+import CartTotal from '../components/CartTotal'
 
 const Cart = () => {
-  // This component will display the user's cart items
-  // You can fetch cart items from the backend and display them here
+  const { products, currency, cartItems, updateQuantity, navigate } = useContext(ShopContext)
 
-  const {products, currency, cartItems, updateQuantity, navigate} = useContext(ShopContext);
-  const [cartData, setCartData] = useState([]);
-/* kkkkkkkkkkkkkkkkkkkkkkkkkkk kkkkkkk */
-  // helper to format price
-  const formatPrice = (value) => `${currency}${Number(value).toFixed(2)}`;
-
-  useEffect(() => {
-    // Fetch cart items from the backend or context
-    const tempData = [];
-
-    for (const item in cartItems) {
-      for (const size in cartItems[item]) {
-        if (cartItems[item][size] > 0) {
-          tempData.push({
-            _id: item,
-            size: size,
-            quantity: cartItems[item][size],
-            // product: products.find(product => product.id === item)
-          });
+  const cartData = useMemo(() => {
+    const items = []
+    for (const itemId in cartItems) {
+      for (const size in cartItems[itemId]) {
+        const quantity = cartItems[itemId][size]
+        if (quantity > 0) {
+          items.push({ _id: itemId, size, quantity })
         }
       }
     }
-    setCartData(tempData);
-    console.log(tempData);
-  },[cartItems])
+    return items
+  }, [cartItems])
+
+  const formatPrice = (value) => `${currency}${Number(value).toFixed(2)}`
 
   return (
     <div className='border-t pt-14'>
-      <div className='text-2xl mb-3 text-center font-bold'>
-        <Title text1={"YOUR"} text2={"CART"} />
+      <div className='text-2xl mb-6 text-center font-bold'>
+        <Title text1='Your' text2='Cart' />
       </div>
 
       {cartData.length === 0 ? (
-        <div className='text-center py-20 text-gray-600'>
-          <img src={assets.empty_cart} alt='empty' className='mx-auto w-40 mb-6' />
-          <h3 className='text-lg font-medium'>Your cart is empty</h3>
-          <p className='mt-2'>Explore our collection and add items you love.</p>
-          <div className='mt-6'>
-            <button onClick={() => navigate('/collection')} className='bg-black text-white px-6 py-2 rounded-md'>Shop Collection</button>
-          </div>
+        <div className='rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm'>
+          <img src={assets.empty_cart} alt='Empty cart illustration' className='mx-auto w-36 mb-6' />
+          <h3 className='text-lg font-semibold text-slate-900'>Your cart is empty</h3>
+          <p className='mt-2 text-sm text-slate-600'>Explore our collection and add items you love.</p>
+          <button
+            type='button'
+            onClick={() => navigate('/collection')}
+            className='mt-6 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800'
+          >
+            Shop Collection
+          </button>
         </div>
       ) : (
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
-          <div className='lg:col-span-2'>
-            <div className='space-y-4'>
-              {cartData.map((product, index) => {
-                const productData = products.find(item => item._id === product._id);
-                if (!productData) return null;
+        <div className='grid gap-8 lg:grid-cols-[2fr_1fr]'>
+          <div className='space-y-4'>
+            {cartData.map((product) => {
+              const productData = products.find((item) => item._id === product._id)
+              if (!productData) return null
 
-                const lineTotal = (productData.price || 0) * product.quantity;
+              const lineTotal = (productData.price || 0) * product.quantity
 
-                return (
-                  <div key={index} className='flex flex-col sm:flex-row gap-4 items-start bg-white shadow-sm rounded-md p-4'>
-                    <img onClick={() => navigate(`/product/${product._id}`)} src={productData.image?.[0]} alt={productData.name} className='w-24 h-24 object-cover rounded-md cursor-pointer' />
+              return (
+                <div key={`${product._id}-${product.size}`} className='flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row'>
+                  <button
+                    type='button'
+                    onClick={() => navigate(`/product/${product._id}`)}
+                    className='h-28 w-28 shrink-0 overflow-hidden rounded-3xl border border-slate-200'
+                  >
+                    <img src={productData.image?.[0]} alt={productData.name} className='h-full w-full object-cover' loading='lazy' />
+                  </button>
 
-                    <div className='flex-1'>
-                      <div className='flex justify-between items-start'>
-                        <div>
-                          <h3 className='text-base font-medium'>{productData.name}</h3>
-                          <p className='text-sm text-gray-500 mt-1'>{product.size}</p>
-                        </div>
-
-                        <div className='text-right'>
-                          <p className='font-medium'>{formatPrice(productData.price)}</p>
-                          <p className='text-sm text-gray-500'>Subtotal: {formatPrice(lineTotal)}</p>
-                        </div>
+                  <div className='flex-1 space-y-4'>
+                    <div className='flex flex-col justify-between gap-4 sm:flex-row sm:items-start'>
+                      <div>
+                        <h3 className='text-base font-semibold text-slate-900'>{productData.name}</h3>
+                        <p className='mt-1 text-sm text-slate-500'>Size: {product.size}</p>
                       </div>
-
-                      <div className='mt-3 flex items-center gap-3'>
-                        <div className='flex items-center border rounded-md overflow-hidden'>
-                          <button aria-label='decrease' onClick={() => updateQuantity(product._id, product.size, Math.max(1, product.quantity - 1))} className='px-3 py-1 bg-gray-50'>-</button>
-                          <div className='px-4'>{product.quantity}</div>
-                          <button aria-label='increase' onClick={() => updateQuantity(product._id, product.size, product.quantity + 1)} className='px-3 py-1 bg-gray-50'>+</button>
-                        </div>
-
-                        <button onClick={() => {
-                          const ok = window.confirm('Remove this item from cart?');
-                          if (ok) updateQuantity(product._id, product.size, 0);
-                        }} className='text-red-600 text-sm flex items-center gap-2'>
-                          <img src={assets.bin_icon} alt='remove' className='w-4' /> Remove
-                        </button>
+                      <div className='text-right'>
+                        <p className='font-semibold text-slate-900'>{formatPrice(productData.price)}</p>
+                        <p className='text-sm text-slate-500'>Subtotal: {formatPrice(lineTotal)}</p>
                       </div>
                     </div>
+
+                    <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                      <div className='flex items-center rounded-2xl border border-slate-200 bg-slate-50'>
+                        <button
+                          type='button'
+                          aria-label='Decrease quantity'
+                          onClick={() => updateQuantity(product._id, product.size, Math.max(1, product.quantity - 1))}
+                          className='h-10 w-10 text-slate-700 transition hover:bg-slate-100'
+                        >
+                          −
+                        </button>
+                        <div className='min-w-[2.5rem] text-center text-sm font-medium'>{product.quantity}</div>
+                        <button
+                          type='button'
+                          aria-label='Increase quantity'
+                          onClick={() => updateQuantity(product._id, product.size, product.quantity + 1)}
+                          className='h-10 w-10 text-slate-700 transition hover:bg-slate-100'
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <button
+                        type='button'
+                        onClick={() => {
+                          if (window.confirm('Remove this item from cart?')) {
+                            updateQuantity(product._id, product.size, 0)
+                          }
+                        }}
+                        className='inline-flex items-center gap-2 text-sm font-medium text-red-600 transition hover:text-red-700'
+                      >
+                        <img src={assets.bin_icon} alt='' className='h-4 w-4' aria-hidden='true' />
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                )
-              })}
-            </div>
+                </div>
+              )
+            })}
           </div>
 
-          <aside className='lg:col-span-1 bg-white shadow-sm rounded-md p-6 h-fit'>
-            <h4 className='text-lg font-medium mb-4'>Order Summary</h4>
+          <aside className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
+            <h4 className='text-lg font-semibold text-slate-900'>Order Summary</h4>
             <CartTotal />
-            <div className='mt-6'>
-              <button onClick={() => navigate('/place-order')} className='w-full bg-black text-white py-3 rounded-md'>Proceed to Checkout</button>
-            </div>
+            <button
+              type='button'
+              onClick={() => navigate('/place-order')}
+              className='mt-6 w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800'
+            >
+              Proceed to Checkout
+            </button>
           </aside>
         </div>
       )}

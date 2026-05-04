@@ -4,12 +4,45 @@
 @tailwind components;
 @tailwind utilities;
 
-a.active hr {
-    display: block;
+:root {
+  color-scheme: light;
+  font-family: 'Outfit', sans-serif;
+  color: #111827;
+  background-color: #f8fafc;
 }
 
-*{
-    font-family: 'Outfit', sans-serif;
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
+}
+
+a.active hr {
+  display: block;
 }
 
 .prata-regular {
@@ -18,12 +51,8 @@ a.active hr {
   font-style: normal;
 }
 
-::-webkit-scrollbar{
-  display: none;
-}
-
 @media (max-width: 640px) {
-  a.active{
+  a.active {
     background-color: black;
     color: white;
   }

@@ -247,7 +247,7 @@ const verifyRazorpayController = async (req, res) => {
 // All orders data for admin panel
 const allOrdersControllers = async (req, res) => {
     try {
-        const orders = await orderModel.find({})
+        const orders = await orderModel.find({}).sort({ createdAt: -1 })
         res.status(200).json({
             success: true,
             message: "All orders data",

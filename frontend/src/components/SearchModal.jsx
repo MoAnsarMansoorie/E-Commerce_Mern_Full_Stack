@@ -10,20 +10,27 @@ const SearchModal = () => {
 
   useEffect(() => {
     if (showSearchModal) {
-      setTimeout(() => inputRef.current?.focus(), 50)
+      const timeout = setTimeout(() => inputRef.current?.focus(), 50)
+      return () => clearTimeout(timeout)
     }
   }, [showSearchModal])
 
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') setShowSearchModal(false)
+    }
+    if (showSearchModal) {
+      window.addEventListener('keydown', handleEscape)
+      return () => window.removeEventListener('keydown', handleEscape)
+    }
+  }, [showSearchModal, setShowSearchModal])
+
   const handleSubmit = () => {
     if (!search || search.trim().length === 0) return
-    const q = `?search=${encodeURIComponent(search)}`
+    const q = `?search=${encodeURIComponent(search.trim())}`
     setShowSearch(true)
     setShowSearchModal(false)
     navigate(`/collection${q}`)
-  }
-
-  const onKeyDown = (e) => {
-    if (e.key === 'Enter') handleSubmit()
   }
 
   const filteredProducts = search && search.trim().length > 0
@@ -31,74 +38,81 @@ const SearchModal = () => {
     : [];
 
   const handleSelectProduct = (id, name) => {
-    setSearch(name);
-    setShowSearchModal(false);
-    navigate(`/product/${id}`);
+    setSearch(name)
+    setShowSearchModal(false)
+    navigate(`/product/${id}`)
   }
 
   if (!showSearchModal) return null
 
   return (
     <div className="fixed inset-0 z-50 sm:hidden flex items-start justify-center p-4">
-      {/* Background overlay (click to close) */}
       <div
         className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
-        style={{backdropFilter: 'blur(6px)'}}
+        style={{ backdropFilter: 'blur(6px)' }}
         onClick={() => setShowSearchModal(false)}
-      ></div>
+        aria-hidden='true'
+      />
 
-      {/* Modal box */}
       <div
-        className="relative w-full max-w-md bg-white rounded-lg p-4 z-10 shadow-lg"
+        role='dialog'
+        aria-modal='true'
+        aria-label='Search for products'
+        className='relative z-10 w-full max-w-md overflow-hidden rounded-3xl bg-white p-5 shadow-2xl'
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3">
-          <img src={assets.search_icon} className="w-4 opacity-70" />
+        <div className='flex items-center gap-3'>
+          <img src={assets.search_icon} alt='' className='w-4 opacity-70' aria-hidden='true' />
+          <label htmlFor='mobile-search' className='sr-only'>Search for products</label>
           <input
+            id='mobile-search'
             ref={inputRef}
-            type="text"
-            placeholder="Search for products..."
-            className="flex-1 outline-none text-sm"
+            type='text'
+            placeholder='Search for products...'
+            className='flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200'
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={onKeyDown}
+            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           />
           <button
+            type='button'
             onClick={handleSubmit}
-            className="px-3 py-1 bg-black text-white rounded text-sm"
+            className='rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-black'
           >
             Search
           </button>
         </div>
 
-        <div className="mt-3">
+        <div className='mt-4 max-h-60 space-y-3 overflow-y-auto'>
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
-              {filteredProducts.map((p) => (
-                <div
-                  key={p._id}
-                  onClick={() => handleSelectProduct(p._id, p.name)}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer"
-                >
-                  <img src={p.image} alt={p.name} className="w-12 h-12 object-cover rounded" />
-                  <div>
-                    <p className="text-sm font-medium">{p.name}</p>
-                    <p className="text-xs text-gray-500">{currency}{p.price}</p>
-                  </div>
+            filteredProducts.map((p) => (
+              <button
+                key={p._id}
+                type='button'
+                onClick={() => handleSelectProduct(p._id, p.name)}
+                className='flex w-full items-center gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-3 text-left transition hover:border-slate-300 hover:bg-slate-100'
+              >
+                <img src={p.image} alt={p.name} className='h-12 w-12 rounded-xl object-cover' />
+                <div>
+                  <p className='font-medium text-slate-900'>{p.name}</p>
+                  <p className='text-xs text-slate-500'>{currency}{p.price}</p>
                 </div>
-              ))}
-            </div>
+              </button>
+            ))
           ) : (
-            search && search.trim().length > 0 && (
-              <div className="p-3 text-sm text-gray-500">No products found</div>
+            search && search.trim().length > 0 ? (
+              <div className='rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500'>No products found</div>
+            ) : (
+              <div className='rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500'>Start typing to search products</div>
             )
           )}
         </div>
 
         <button
+          type='button'
           onClick={() => setShowSearchModal(false)}
-          className="absolute top-2 right-2 text-gray-500 text-xl"
-          aria-label="Close search"
+          className='absolute right-4 top-4 text-xl text-slate-500 transition hover:text-slate-900'
+          aria-label='Close search dialog'
         >
           ×
         </button>
