@@ -66,10 +66,8 @@ const Contact = () => {
         <form onSubmit={handleSubmit} className='space-y-4 bg-white p-6 rounded-lg shadow-sm'>
           {error && <div className='text-red-600 text-sm'>{error}</div>}
           {success && <div className='text-green-600 text-sm'>{success}</div>}
-          <div className='flex gap-4'>
-            <input name='name' value={form.name} onChange={handleChange} required placeholder='Full name' className='flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200' />
-            <input name='email' value={form.email} onChange={handleChange} required type='email' placeholder='Email address' className='flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200' />
-          </div>
+          <input name='name' value={form.name} onChange={handleChange} required placeholder='Full name' className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200' />
+          <input name='email' value={form.email} onChange={handleChange} required type='email' placeholder='Email address' className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200' />
 
           <input name='subject' value={form.subject} onChange={handleChange} placeholder='Subject' className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200' />
 

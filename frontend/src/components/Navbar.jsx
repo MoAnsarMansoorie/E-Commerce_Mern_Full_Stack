@@ -23,7 +23,7 @@ const Navbar = () => {
     <>
       <div className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3 sm:px-8">
-          <Link to="/" className="flex items-center gap-3 text-sm font-semibold text-slate-900" aria-label="Go to home">
+          <Link to="/" className="flex items-center gap-3 text-sm font-semibold text-slate-900 mr-6" aria-label="Go to home">
             <img src={assets.logo} alt="Quick logo" className="w-14" />
             <span className="hidden sm:inline">Quick Shop</span>
           </Link>

@@ -101,7 +101,7 @@ const Hero = () => {
             <img
               src={s.img}
               alt={s.title}
-              className="w-full h-[300px] sm:h-[480px] object-cover text-white transition-transform duration-[3000ms] ease-out"
+              className="w-full h-screen object-cover text-white transition-transform duration-[3000ms] ease-out"
               style={{ transform: index === current ? 'scale(1.04)' : 'scale(1)' }}
             />
 
